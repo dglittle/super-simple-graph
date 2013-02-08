@@ -1,0 +1,106 @@
+<html>
+<head>
+<title>Hello</title>
+<style>
+
+.fill {
+    width: 100%;
+    height: 100%;
+}
+
+table {
+    border-collapse: collapse;
+}
+th, td {
+    padding: 0;
+}
+
+</style>
+</head>
+<body>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+<script src="https://raw.github.com/dglittle/myutil/master/u.js"></script>
+<script>
+
+function graph(c, data, color) {
+    var w = c.width()
+    var h = c.height()
+    var g = c.get()[0].getContext("2d")
+
+    g.fillStyle = 'rgba(255, 255, 255, 0.8)'
+    g.fillRect(0, 0, w, h)
+
+    g.beginPath()
+
+    var minX = _.min(data, function (e) { return e[0] })[0]
+    var maxX = _.max(data, function (e) { return e[0] })[0]
+
+    var minY = _.min(data, function (e) { return e[1] })[1]
+    var maxY = _.max(data, function (e) { return e[1] })[1]
+
+    function getX(x) {
+        return _.lerp(minX, 0, maxX, w, x)
+    }
+
+    function getY(y) {
+        return _.lerp(minY, h, maxY, 0, y)
+    }
+
+    _.each(data, function (e, i) {
+        if (i == 0)
+            g.moveTo(getX(e[0]), getY(e[1]))
+        else
+            g.lineTo(getX(e[0]), getY(e[1]))
+    })
+
+    g.lineWidth = 1
+    g.strokeStyle = color
+    g.stroke()
+}
+
+$(function () {
+    var c = null
+    var cHolder = $('<div class="fill"/>')
+    var input = $('<textarea class="fill"/>')
+    var goButton = $('<button/>').text('graph it').click(function () {
+        var s = input.val()
+        var data = null
+        if (!data) {
+            try {
+                var data = JSON.parse(s)
+            } catch (e) {}
+        }
+        if (!data) {
+            try {
+                var data = JSON.parse('[' + s + ']')
+            } catch (e) {}
+        }
+        if (!data) {
+            try {
+                var data = _.map(s.match(/[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?/g), function (e) { return 1 * e })
+            } catch (e) {}
+        }
+        if (!data || !data.length) {
+            alert("I'm afraid I couldn't parse the data")
+        }
+        if (typeof(data[0]) != "object") {
+            data = _.map(data, function (v, i) {
+                return [i, v]
+            })
+        }
+        graph(c, data, 'rgba(255, 0, 0, .8)')
+    })
+    $('body').append(_.splitVert(1, goButton, _.splitHorz(50, input, cHolder)))
+    setTimeout(function () {
+        var w = cHolder.width()
+        var h = cHolder.height()
+        w = h = Math.min(w, h)
+        c = $('<canvas style="border:1px solid black"/>').attr('width', w).attr('height', h)
+        cHolder.append(c)
+    }, 0)
+})
+
+</script>
+
+</body>
+</html>
