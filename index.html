@@ -1,28 +1,22 @@
 <html>
 <head>
 <title>Hello</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css">
 <style>
-
 .fill {
     width: 100%;
     height: 100%;
 }
-
-table {
-    border-collapse: collapse;
-}
-th, td {
-    padding: 0;
-}
-
 </style>
 </head>
 <body>
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+<script src="http://code.jquery.com/jquery.js"></script>
+<script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
 <script src="http://dglittle.github.io/gl519/index.js"></script>
 <script>
 
-function graph(c, data, color) {
+function graph(c, data, color, minY, maxY) {
     var w = c.width()
     var h = c.height()
     var g = c.get()[0].getContext("2d")
@@ -35,8 +29,10 @@ function graph(c, data, color) {
     var minX = _.min(data, function (e) { return e[0] })[0]
     var maxX = _.max(data, function (e) { return e[0] })[0]
 
-    var minY = _.min(data, function (e) { return e[1] })[1]
-    var maxY = _.max(data, function (e) { return e[1] })[1]
+    if (minY == null)
+        minY = _.min(data, function (e) { return e[1] })[1]
+    if (maxY == null)
+        maxY = _.max(data, function (e) { return e[1] })[1]
 
     function getX(x) {
         return _.lerp(minX, 0, maxX, w, x)
@@ -58,11 +54,17 @@ function graph(c, data, color) {
     g.stroke()
 }
 
+function drawTop(getInput, getCanvas) {
+    var d = $('<div class="row"/>')
+
+    return d
+}
+
 $(function () {
     var c = null
     var cHolder = $('<div class="fill"/>')
-    var input = $('<textarea class="fill"/>')
-    var goButton = $('<button/>').text('graph it').click(function () {
+    var input = $('<textarea style="width:100%;height:200px"/>')
+    var goButton = $('<button type="button" class="btn btn-default"/>').text('graph it').click(function () {
         var s = input.val()
         var data = null
         if (!data) {
@@ -88,9 +90,10 @@ $(function () {
                 return [i, v]
             })
         }
-        graph(c, data, 'rgba(255, 0, 0, .8)')
+        graph(c, data, 'rgba(255, 0, 0, .8)', yMin.val() ? 1*yMin.val() : null, yMax.val() ? 1*yMax.val() : null)
     })
-    $('body').append(_.splitVert(null, 1, goButton, _.splitHorz(0.5, 0.5, input, cHolder)))
+    var yMin = $('<input type="text"/>')
+    var yMax = $('<input type="text"/>')
     setTimeout(function () {
         var w = cHolder.width()
         var h = cHolder.height()
@@ -98,6 +101,16 @@ $(function () {
         c = $('<canvas style="border:1px solid black"/>').attr('width', w).attr('height', h)
         cHolder.append(c)
     }, 0)
+
+    $('body').
+        append($('<div class="row">').
+            append($('<div class="col-lg-6">').
+                append(goButton).
+                append($('<span>').text('y min: ')).append(yMin).
+                append($('<span>').text('y max: ')).append(yMax))).
+        append($('<div class="row">').
+            append($('<div class="col-lg-6">').append(input)).
+            append($('<div class="col-lg-6">').append(cHolder)))
 })
 
 </script>
